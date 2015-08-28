@@ -11,20 +11,26 @@ import requests
 import oauth2, oauth2client
 import wget
 import imghdr
-def downloadImageFromURL(url, fsn=None):
-	
+
+def downloadImageFromURL(url, fsn=None):	
 	if fsn is not None:
 		#wget.download(url)
 		print "Trying to retrieve:\n%s\n"%url
 		output_file_name = fsn + "_" + os.path.basename(url)
-		urllib.urlretrieve(url, output_file_name)
-		image_type = imghdr.what(output_file_name)
-		if not image_type:
-			print "Error while trying to download %s."%url
-			os.remove(output_file_name)
-		else:
-			print "Downloaded %s."% os.path.basename(url)
-
+		try:
+			urllib.urlretrieve(url, output_file_name)
+			image_type = imghdr.what(output_file_name)
+			if not image_type:
+				print "%s is not an image."%url
+				os.remove(output_file_name)
+			else:
+				print "Downloaded %s."% os.path.basename(url)
+		except IOError:
+			print "Socket error encountered while parsing %s."%url
+			pass
+		except Exception, e:
+			print "Encountered an exception: %s"%repr(e)
+			pass
 def downloadImages(fsn_data_frame_row):
 	#data_columns = fsn_data_frame_row.columns
 	#url_columns = [column for column in url_columns if "url" in column]
