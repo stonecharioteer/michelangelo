@@ -3,6 +3,7 @@ import os
 import urllib
 import math
 import urllib2
+import zipfile
 from bs4 import BeautifulSoup
 from PyQt4 import QtGui, QtCore
 import pandas as pd
@@ -40,7 +41,7 @@ def downloadImages(fsn_data_frame_row):
 	for url in download_links:
 		downloadImageFromURL(url, fsn)
 
-if __name__ == "__main__":
+def main():
 	start_time = datetime.datetime.now()
 	link_data_set = pd.read_excel(os.path.join(os.getcwd(),"LCI Pending Images 27_08_2015.xlsx"),sheetname=0)
 	total = link_data_set.shape[0]
@@ -52,3 +53,27 @@ if __name__ == "__main__":
 		counter +=1
 		print "Processed %d of %d. Total Time Taken So Far: %s s."%(counter, total, (datetime.datetime.now()-start_time).seconds)
 
+def unzip(source_filename, dest_dir):
+    with zipfile.ZipFile(source_filename) as zf:
+        for member in zf.infolist():
+            # Path traversal defense copied from
+            # http://hg.python.org/cpython/file/tip/Lib/http/server.py#l789
+            words = member.filename.split('/')
+            path = dest_dir
+            for word in words[:-1]:
+                drive, word = os.path.splitdrive(word)
+                head, word = os.path.split(word)
+                if word in (os.curdir, os.pardir, ''): continue
+                path = os.path.join(path, word)
+            zf.extract(member, path)
+
+if __name__ == "__main__":
+	link = "https://www.dropbox.com/sh/ebc86vyla7fyuu4/AAAyLnxHzSM2rdJmIt4EVMi3a/PrintedAztec13-Green?dl=0&preview=5.JPG"
+	corrected_link = link[:link.find("dl=0")]+"dl=1"
+	start_time = datetime.datetime.now()
+	print "Downloading:"
+	filename = wget.download(corrected_link)
+	print "\nDone downloading %s in %ss."%(filename,(datetime.datetime.now()-start_time).seconds)
+	print "Unpacking %s."%filename
+	unzip(filename,os.path.join(os.getcwd(),filename[:filename.find(".")]))
+	print "Finished."
